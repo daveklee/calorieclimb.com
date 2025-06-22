@@ -1,7 +1,15 @@
 import React from 'react';
-import { Github, Heart, Code, Users, Shield, Lightbulb } from 'lucide-react';
+import { Github, Heart, Code, Users, Shield, Lightbulb, ExternalLink } from 'lucide-react';
 
 export default function AboutPage() {
+  const handleOpenIssue = () => {
+    window.open('https://github.com/daveklee/calorieclimb.com/issues/new', '_blank');
+  };
+
+  const handleOpenRepository = () => {
+    window.open('https://github.com/daveklee/calorieclimb.com', '_blank');
+  };
+
   return (
     <div className="p-4">
       <div className="max-w-4xl mx-auto">
@@ -135,17 +143,29 @@ export default function AboutPage() {
                 </div>
               </div>
               
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button
+                  onClick={handleOpenRepository}
+                  className="flex items-center justify-center space-x-2 bg-gray-800 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                >
+                  <Github className="w-5 h-5" />
+                  <span>View on GitHub</span>
+                  <ExternalLink className="w-4 h-4" />
+                </button>
+                
+                <button
+                  onClick={handleOpenIssue}
+                  className="flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                >
+                  <Github className="w-5 h-5" />
+                  <span>Open Issue</span>
+                  <ExternalLink className="w-4 h-4" />
+                </button>
+              </div>
+              
               <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
                 <p className="text-blue-800 font-medium">
-                  📚 View the source code and contribute on{' '}
-                  <a 
-                    href="https://github.com/daveklee/calorieclimb.com" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 underline font-semibold"
-                  >
-                    GitHub
-                  </a>
+                  💡 Found a bug or have a feature request? Click "Open Issue" above to let us know!
                 </p>
               </div>
             </div>
