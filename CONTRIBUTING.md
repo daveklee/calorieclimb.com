@@ -22,8 +22,8 @@ Thank you for your interest in contributing to Calorie Climb! This project aims 
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/daveklee/calorieclimb.com.git
-   cd calorieclimb.com
+   git clone [repository-url]
+   cd calorie-climb
    ```
 
 2. **Install dependencies**

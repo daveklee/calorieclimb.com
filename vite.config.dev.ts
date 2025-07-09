@@ -1,11 +1,11 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// https://vitejs.dev/config/
+// Development config - uses root path
 export default defineConfig({
   plugins: [react()],
-  base: '/calorieclimb.com/',
+  base: '/',
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
-});
+}); 
