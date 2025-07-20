@@ -19,10 +19,7 @@ Calorie Climb is an educational game where kids feed a virtual character differe
 
 ## 🚀 Live Demo
 
-- **Primary Domain:** [https://calorieclimb.com](https://calorieclimb.com)
-- **GitHub Pages:** [https://[your-username].github.io/calorieclimb.com/](https://[your-username].github.io/calorieclimb.com/)
-
-> **Note:** The app is deployed both to the custom domain and to GitHub Pages. All public configuration (such as Supabase project URL and anon key) is required for the app to function and must be set as environment variables in your GitHub repository secrets. No sensitive API keys are exposed in the client; all secure API access is handled by Supabase Edge Functions.
+Visit the live application: [https://calorieclimb.com](https://calorieclimb.com)
 
 ## 🛠️ Technology Stack
 
@@ -32,7 +29,7 @@ Calorie Climb is an educational game where kids feed a virtual character differe
 - **Icons**: Lucide React
 - **APIs**: USDA Food Data Central, Perplexity AI
 - **Build Tool**: Vite
-- **Deployment**: GitHub Pages (with GitHub Actions)
+- **Deployment**: Netlify
 
 ## 🏃‍♂️ Quick Start
 
@@ -40,7 +37,6 @@ Calorie Climb is an educational game where kids feed a virtual character differe
 
 - Node.js (version 18 or higher)
 - npm or yarn package manager
-- Supabase project (for backend functions)
 
 ### Installation
 
@@ -55,13 +51,17 @@ Calorie Climb is an educational game where kids feed a virtual character differe
    npm install
    ```
 
-3. **Set up environment variables**
-   - Create a `.env` file or set these as GitHub repository secrets for deployment:
-     - `VITE_SUPABASE_URL`: Your Supabase project URL (required)
-     - `VITE_SUPABASE_ANON_KEY`: Your Supabase anonymous key (required)
-     - `VITE_GA_MEASUREMENT_ID`: Your Google Analytics ID (optional)
-
-   > **Note:** USDA and Perplexity API keys are stored securely in Supabase Edge Functions and do not need to be exposed in GitHub Actions or the client.
+3. **Set up environment variables** (optional but recommended)
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Add your API keys to `.env`:
+   ```env
+   VITE_USDA_API_KEY=your_usda_api_key_here
+   VITE_PERPLEXITY_API_KEY=your_perplexity_api_key_here
+   VITE_GA_MEASUREMENT_ID=your_ga_measurement_id_here
+   ```
 
 4. **Start the development server**
    ```bash
@@ -70,37 +70,13 @@ Calorie Climb is an educational game where kids feed a virtual character differe
 
 5. **Open your browser** to `http://localhost:5173`
 
-## 🚀 Deployment
+### API Keys (Optional)
 
-This repository is configured for automatic deployment to both GitHub Pages and the custom domain. Every push to the `main` branch will trigger a build and deployment.
+The app works in offline mode without API keys, but for the full experience:
 
-### GitHub Pages
-
-1. **Enable GitHub Pages**:
-   - Go to your repository Settings → Pages
-   - Set "Source" to "GitHub Actions"
-   - Save the changes
-
-2. **Configure Environment Variables**:
-   - Go to Settings → Secrets and variables → Actions
-   - Add the following repository secrets:
-     - `VITE_SUPABASE_URL`: Your Supabase project URL (required)
-     - `VITE_SUPABASE_ANON_KEY`: Your Supabase anonymous key (required)
-     - `VITE_GA_MEASUREMENT_ID`: Your Google Analytics ID (optional)
-
-   **Note:** USDA and Perplexity API keys are stored securely in Supabase Edge Functions and don't need to be exposed in GitHub Actions.
-
-3. **Push to Main**: The workflow will automatically build and deploy your app to GitHub Pages.
-
-### Custom Domain (calorieclimb.com)
-
-- The app is also deployed to [https://calorieclimb.com](https://calorieclimb.com) using a separate deployment process (e.g., Netlify or other hosting). Ensure the same environment variables are set in your hosting provider.
-
-### Security and Public Configuration
-
-- Only public configuration (Supabase URL and anon key, Google Analytics ID) is exposed to the client.
-- All sensitive API keys (USDA, Perplexity) are kept secure in Supabase Edge Functions.
-- This repository is public; do not commit any sensitive secrets.
+- **USDA API Key**: Get free access at [USDA Food Data Central](https://fdc.nal.usda.gov/api-guide.html)
+- **Perplexity API Key**: Sign up at [Perplexity AI](https://www.perplexity.ai/)
+- **Google Analytics**: Create a GA4 property for analytics
 
 ## 🎮 How to Play
 
