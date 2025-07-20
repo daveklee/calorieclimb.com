@@ -21,6 +21,10 @@
         l.hash
       );
     </script>
+    <script>
+      // Redirect all 404s to index.html for SPA routing on GitHub Pages
+      location.replace('/calorieclimb.com/' + location.search + location.hash);
+    </script>
   </head>
   <body>
   </body>
