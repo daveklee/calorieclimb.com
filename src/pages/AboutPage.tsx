@@ -189,7 +189,7 @@ export default function AboutPage() {
               </div>
               <div className="text-center p-4 bg-purple-50 rounded-lg">
                 <div className="text-2xl mb-2">🤖</div>
-                <div className="font-medium text-purple-800">Perplexity AI</div>
+                <div className="font-medium text-purple-800">OpenAI</div>
               </div>
             </div>
           </div>

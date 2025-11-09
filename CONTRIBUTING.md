@@ -38,7 +38,7 @@ Thank you for your interest in contributing to Calorie Climb! This project aims 
    
    Fill in your API keys:
    - `VITE_USDA_API_KEY`: Get from [USDA Food Data Central](https://fdc.nal.usda.gov/api-guide.html)
-   - `VITE_PERPLEXITY_API_KEY`: Get from [Perplexity AI](https://www.perplexity.ai/)
+   - `VITE_OPENAI_API_KEY`: Get from [OpenAI Platform](https://platform.openai.com/)
    - `VITE_GA_MEASUREMENT_ID`: Google Analytics 4 measurement ID
 
 4. **Start the development server**
@@ -100,7 +100,7 @@ When reporting issues, please include:
 
 - `src/components/`: Reusable UI components
 - `src/pages/`: Page-level components
-- `src/services/`: API integrations (USDA, Perplexity)
+- `src/services/`: API integrations (USDA, OpenAI)
 - `src/utils/`: Utility functions and helpers
 - `src/types/`: TypeScript type definitions
 

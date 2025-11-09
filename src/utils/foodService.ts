@@ -1,7 +1,7 @@
 import { Food } from '../types/game';
 import { findFood as findOfflineFood, getFoodSuggestions as getOfflineSuggestions } from './foodDatabase';
 import { usdaApi, SearchMode } from '../services/usdaApi';
-import { perplexityApi } from '../services/perplexityApi';
+import { openaiApi } from '../services/openaiApi';
 import { analytics } from './analytics';
 
 export class FoodService {
@@ -10,9 +10,14 @@ export class FoodService {
   private maxFailures: number = 3;
   private searchCache: Map<string, Food[]> = new Map();
   private lastSearchTime: number = 0;
-  private minSearchInterval: number = 500; // Increased to 500ms for better rate limiting
+  private minSearchInterval: number = 1000; // Increased to 1 second for better rate limiting
   private searchTimeouts: Map<string, number> = new Map();
-  private searchMode: SearchMode = 'generic'; // Default to generic search
+  private searchMode: SearchMode = 'generic';
+  
+  // Client-side caching for better efficiency
+  private foodDetailsCache: Map<number, Food> = new Map();
+  private cacheExpiry: Map<string, number> = new Map();
+  private readonly CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 
   constructor() {
     this.isOnlineMode = usdaApi.isConfigured();
@@ -30,6 +35,7 @@ export class FoodService {
     this.searchMode = mode;
     // Clear cache when search mode changes
     this.searchCache.clear();
+    this.cacheExpiry.clear();
     
     // Track search mode change
     analytics.trackSearchModeChange(mode);
@@ -49,6 +55,21 @@ export class FoodService {
     const now = Date.now();
     const timeSinceLastSearch = now - this.lastSearchTime;
     return timeSinceLastSearch >= this.minSearchInterval;
+  }
+
+  private isCacheValid(key: string): boolean {
+    const expiry = this.cacheExpiry.get(key);
+    return expiry ? Date.now() < expiry : false;
+  }
+
+  private setCacheWithExpiry(key: string, value: any): void {
+    this.cacheExpiry.set(key, Date.now() + this.CACHE_DURATION);
+    if (key.startsWith('search:')) {
+      this.searchCache.set(key, value);
+    } else if (key.startsWith('food:')) {
+      const fdcId = parseInt(key.replace('food:', ''));
+      this.foodDetailsCache.set(fdcId, value);
+    }
   }
 
   private containsAlcohol(text: string): boolean {
@@ -78,16 +99,27 @@ export class FoodService {
     // Always try offline first for exact matches
     const offlineFood = findOfflineFood(name);
     if (offlineFood && !this.isOnlineMode) {
-      // Track food selection
       analytics.trackFoodSelection(offlineFood.name, offlineFood.calories, false);
       return offlineFood;
+    }
+
+    // Check cache first for online searches
+    const cacheKey = `search:${name.toLowerCase()}_${this.searchMode}`;
+    if (this.isCacheValid(cacheKey)) {
+      const cachedResults = this.searchCache.get(cacheKey);
+      if (cachedResults && cachedResults.length > 0) {
+        console.log('Using cached food result for:', name);
+        const bestMatch = cachedResults[0];
+        analytics.trackFoodSelection(bestMatch.name, bestMatch.calories, bestMatch.isFromUSDA || false);
+        return bestMatch;
+      }
     }
 
     // If online mode is available and hasn't failed too many times, search USDA database
     if (this.isOnlineMode && this.usdaApiFailures < this.maxFailures && this.canMakeUSDARequest()) {
       try {
         this.lastSearchTime = Date.now();
-        const searchResults = await usdaApi.searchFoodsLegacy(name, 5, this.searchMode);
+        const searchResults = await usdaApi.searchFoodsLegacy(name, 3, this.searchMode); // Reduced to 3 results
         
         if (searchResults.length > 0) {
           // Find the best match
@@ -97,6 +129,17 @@ export class FoodService {
             if (this.containsAlcohol(bestMatch.description)) {
               console.log('USDA alcohol-related food rejected:', bestMatch.description);
               return offlineFood; // Fall back to offline if available
+            }
+
+            // Check food details cache first
+            const foodCacheKey = `food:${bestMatch.fdcId}`;
+            if (this.isCacheValid(foodCacheKey)) {
+              const cachedFood = this.foodDetailsCache.get(bestMatch.fdcId);
+              if (cachedFood) {
+                console.log('Using cached food details for:', bestMatch.fdcId);
+                analytics.trackFoodSelection(cachedFood.name, cachedFood.calories, true);
+                return cachedFood;
+              }
             }
 
             const foodDetails = await usdaApi.getFoodDetails(bestMatch.fdcId);
@@ -110,7 +153,9 @@ export class FoodService {
             
             // Only return if it has calories data
             if (usdaFood.calories > 0) {
-              // Track food selection
+              // Cache the result
+              this.setCacheWithExpiry(foodCacheKey, usdaFood);
+              
               analytics.trackFoodSelection(usdaFood.name, usdaFood.calories, true);
               return usdaFood;
             }
@@ -140,13 +185,15 @@ export class FoodService {
       return [];
     }
 
-    const cacheKey = `${normalizedInput}_${this.searchMode}`;
+    const cacheKey = `search:${normalizedInput}_${this.searchMode}`;
     
     // Check cache first
-    if (this.searchCache.has(cacheKey)) {
-      const cachedResults = this.searchCache.get(cacheKey)!;
-      console.log('Using cached food suggestions for:', normalizedInput, 'mode:', this.searchMode);
-      return cachedResults;
+    if (this.isCacheValid(cacheKey)) {
+      const cachedResults = this.searchCache.get(cacheKey);
+      if (cachedResults) {
+        console.log('Using cached food suggestions for:', normalizedInput, 'mode:', this.searchMode);
+        return cachedResults;
+      }
     }
 
     // Clear any existing timeout for this input
@@ -172,12 +219,12 @@ export class FoodService {
         const timeout = setTimeout(async () => {
           try {
             this.lastSearchTime = Date.now();
-            const searchResults = await usdaApi.searchFoodsLegacy(input, 8, this.searchMode); // Get more results
+            const searchResults = await usdaApi.searchFoodsLegacy(input, 5, this.searchMode); // Reduced to 5 results
             
             const usdaSuggestions: Food[] = [];
             
-            // Process up to 6 results to show more variety
-            for (let i = 0; i < Math.min(searchResults.length, 6); i++) {
+            // Process up to 3 results to reduce API calls
+            for (let i = 0; i < Math.min(searchResults.length, 3); i++) {
               const result = searchResults[i];
               
               // Check for alcohol content in USDA results
@@ -195,8 +242,24 @@ export class FoodService {
               
               if (!isDuplicate) {
                 try {
-                  const foodDetails = await usdaApi.getFoodDetails(result.fdcId);
-                  const usdaFood = usdaApi.convertUSDAToFood(foodDetails, this.searchMode);
+                  // Check cache for food details first
+                  const foodCacheKey = `food:${result.fdcId}`;
+                  let usdaFood: Food;
+                  
+                  if (this.isCacheValid(foodCacheKey)) {
+                    const cachedFood = this.foodDetailsCache.get(result.fdcId);
+                    if (cachedFood) {
+                      usdaFood = cachedFood;
+                    } else {
+                      const foodDetails = await usdaApi.getFoodDetails(result.fdcId);
+                      usdaFood = usdaApi.convertUSDAToFood(foodDetails, this.searchMode);
+                      this.setCacheWithExpiry(foodCacheKey, usdaFood);
+                    }
+                  } else {
+                    const foodDetails = await usdaApi.getFoodDetails(result.fdcId);
+                    usdaFood = usdaApi.convertUSDAToFood(foodDetails, this.searchMode);
+                    this.setCacheWithExpiry(foodCacheKey, usdaFood);
+                  }
                   
                   // Final alcohol check on converted food
                   if (this.containsAlcohol(usdaFood.name) || this.containsAlcohol(usdaFood.description)) {
@@ -216,22 +279,19 @@ export class FoodService {
             
             // Combine offline and online suggestions, prioritizing variety
             const combinedSuggestions = this.combineAndDeduplicateSuggestions(suggestions, usdaSuggestions);
-            const finalSuggestions = combinedSuggestions.slice(0, 8); // Show up to 8 suggestions
+            const finalSuggestions = combinedSuggestions.slice(0, 6); // Show up to 6 suggestions
             
-            // Cache the results for 5 minutes
-            this.searchCache.set(cacheKey, finalSuggestions);
-            setTimeout(() => {
-              this.searchCache.delete(cacheKey);
-            }, 5 * 60 * 1000);
+            // Cache the results
+            this.setCacheWithExpiry(cacheKey, finalSuggestions);
             
             resolve(finalSuggestions);
           } catch (error) {
             this.handleUSDAError(error);
-            resolve(suggestions.slice(0, 8)); // Return offline suggestions only
+            resolve(suggestions.slice(0, 6)); // Return offline suggestions only
           } finally {
             this.searchTimeouts.delete(normalizedInput);
           }
-        }, 800); // Increased debounce time to 800ms for better rate limiting
+        }, 1200); // Increased debounce time to 1.2 seconds for better rate limiting
         
         this.searchTimeouts.set(normalizedInput, timeout);
       });
@@ -239,7 +299,7 @@ export class FoodService {
       return await searchPromise;
     }
 
-    return suggestions.slice(0, 8); // Show up to 8 suggestions
+    return suggestions.slice(0, 6); // Show up to 6 suggestions
   }
 
   private combineAndDeduplicateSuggestions(offlineSuggestions: Food[], usdaSuggestions: Food[]): Food[] {
@@ -287,10 +347,10 @@ export class FoodService {
       return `Oops! ${currentFood.name} (${currentFood.calories} calories) does not have more calories than ${previousFood.name} (${previousFood.calories} calories). Remember, we need to climb up the calorie ladder!`;
     }
 
-    // Use Perplexity API if available and this is a USDA food
-    if (perplexityApi.isConfigured() && currentFood.isFromUSDA) {
+    // Use OpenAI API if available and this is a USDA food, but with throttling
+    if (openaiApi.isConfigured() && currentFood.isFromUSDA && Math.random() > 0.3) { // Only 70% of the time
       try {
-        const aiMessage = await perplexityApi.generateFoodComparison(
+        const aiMessage = await openaiApi.generateFoodComparison(
           currentFood.name,
           currentFood.calories,
           previousFood?.name || null,
@@ -304,7 +364,7 @@ export class FoodService {
       }
     }
 
-    // Default feedback message
+    // Default feedback message (used more often to save API calls)
     let message = `Great choice! ${currentFood.name} ${currentFood.description} `;
     
     if (previousFood) {

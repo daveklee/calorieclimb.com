@@ -3,7 +3,7 @@
 
 interface EnvConfig {
   USDA_API_KEY: string | null;
-  PERPLEXITY_API_KEY: string | null;
+  OPENAI_API_KEY: string | null;
   GA_MEASUREMENT_ID: string | null;
 }
 
@@ -19,7 +19,7 @@ class EnvironmentConfig {
     // In development, they come from .env files
     return {
       USDA_API_KEY: import.meta.env.VITE_USDA_API_KEY || null,
-      PERPLEXITY_API_KEY: import.meta.env.VITE_PERPLEXITY_API_KEY || null,
+      OPENAI_API_KEY: import.meta.env.VITE_OPENAI_API_KEY || null,
       GA_MEASUREMENT_ID: import.meta.env.VITE_GA_MEASUREMENT_ID || null
     };
   }
@@ -40,7 +40,7 @@ class EnvironmentConfig {
   logConfigStatus(): void {
     console.log('Environment Configuration Status:', {
       USDA_API_KEY: this.isConfigured('USDA_API_KEY') ? 'Configured' : 'Not configured',
-      PERPLEXITY_API_KEY: this.isConfigured('PERPLEXITY_API_KEY') ? 'Configured' : 'Not configured',
+      OPENAI_API_KEY: this.isConfigured('OPENAI_API_KEY') ? 'Configured' : 'Not configured',
       GA_MEASUREMENT_ID: this.isConfigured('GA_MEASUREMENT_ID') ? 'Configured' : 'Not configured',
       environment: import.meta.env.MODE || 'unknown'
     });

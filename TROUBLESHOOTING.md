@@ -52,7 +52,7 @@ supabase secrets set USDA_API_KEY=your_actual_api_key_here
 
 # Deploy the functions
 supabase functions deploy usda-proxy
-supabase functions deploy perplexity-proxy
+supabase functions deploy openai-proxy
 ```
 
 ### 3. Verify Edge Functions Are Deployed
@@ -61,14 +61,14 @@ Make sure your Edge Functions are properly deployed:
 
 1. **Check in Supabase Dashboard**:
    - Go to Edge Functions
-   - You should see `usda-proxy` and `perplexity-proxy` listed
+   - You should see `usda-proxy` and `openai-proxy` listed
    - They should show as "Active" or "Deployed"
 
 2. **If they're not deployed**, you need to deploy them:
    ```bash
    # Using Supabase CLI
    supabase functions deploy usda-proxy
-   supabase functions deploy perplexity-proxy
+   supabase functions deploy openai-proxy
    ```
 
 ### 4. Test Edge Function Directly

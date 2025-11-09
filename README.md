@@ -11,7 +11,7 @@ Calorie Climb is an educational game where kids feed a virtual character differe
 ### Key Features
 
 - 🥗 **Real Food Data**: Uses the official USDA Food Data Central database
-- 🤖 **AI-Enhanced Learning**: Educational feedback powered by Perplexity AI
+- 🤖 **AI-Enhanced Learning**: Educational feedback powered by OpenAI
 - 🎮 **Gamified Education**: Makes nutrition learning fun and engaging
 - 👨‍👩‍👧‍👦 **Family Friendly**: Safe, kid-appropriate content with alcohol filtering
 - 📱 **Responsive Design**: Works on desktop, tablet, and mobile devices
@@ -27,7 +27,7 @@ Visit the live application: [https://calorieclimb.com](https://calorieclimb.com)
 - **Styling**: Tailwind CSS
 - **Routing**: React Router
 - **Icons**: Lucide React
-- **APIs**: USDA Food Data Central, Perplexity AI
+- **APIs**: USDA Food Data Central, OpenAI
 - **Build Tool**: Vite
 - **Deployment**: Netlify
 
@@ -59,7 +59,7 @@ Visit the live application: [https://calorieclimb.com](https://calorieclimb.com)
    Add your API keys to `.env`:
    ```env
    VITE_USDA_API_KEY=your_usda_api_key_here
-   VITE_PERPLEXITY_API_KEY=your_perplexity_api_key_here
+   VITE_OPENAI_API_KEY=your_openai_api_key_here
    VITE_GA_MEASUREMENT_ID=your_ga_measurement_id_here
    ```
 
@@ -75,7 +75,7 @@ Visit the live application: [https://calorieclimb.com](https://calorieclimb.com)
 The app works in offline mode without API keys, but for the full experience:
 
 - **USDA API Key**: Get free access at [USDA Food Data Central](https://fdc.nal.usda.gov/api-guide.html)
-- **Perplexity API Key**: Sign up at [Perplexity AI](https://www.perplexity.ai/)
+- **OpenAI API Key**: Sign up at [OpenAI Platform](https://platform.openai.com/)
 - **Google Analytics**: Create a GA4 property for analytics
 
 ## 🎮 How to Play
@@ -107,7 +107,7 @@ src/
 │   └── AboutPage.tsx   # About and information page
 ├── services/           # External API integrations
 │   ├── usdaApi.ts      # USDA Food Database API
-│   └── perplexityApi.ts # Perplexity AI API
+│   └── openaiApi.ts # OpenAI API
 ├── utils/              # Utility functions
 │   ├── foodService.ts  # Food search and management
 │   ├── gameLogic.ts    # Game rules and calculations
@@ -176,7 +176,7 @@ This project is open source and available under the [MIT License](LICENSE).
 ## 🙏 Acknowledgments
 
 - **USDA Food Data Central**: For providing comprehensive food nutrition data
-- **Perplexity AI**: For educational content generation
+- **OpenAI**: For educational content generation
 - **React Community**: For the amazing ecosystem and tools
 - **Contributors**: Everyone who helps make this project better
 
@@ -194,7 +194,7 @@ Made with ❤️ for kids and families who want to learn about nutrition in a fu
 
 - [Live Demo](https://calorieclimb.com)
 - [USDA Food Data Central](https://fdc.nal.usda.gov/)
-- [Perplexity AI](https://www.perplexity.ai/)
+- [OpenAI Platform](https://platform.openai.com/)
 - [Contributing Guidelines](CONTRIBUTING.md)
 
 ---

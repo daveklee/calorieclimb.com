@@ -1,37 +1,28 @@
 import { USDAFoodSearchResult, USDAFoodDetails, Food } from '../types/game';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
 export type SearchMode = 'generic' | 'branded' | 'full';
 
 class USDAApiService {
   private baseUrl: string;
 
   constructor() {
-    // Use Supabase Edge Function as proxy to keep API keys secure
-    this.baseUrl = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1` : '';
-    console.log('USDA API Service initialized with proxy:', {
-      hasSupabaseUrl: !!SUPABASE_URL,
-      hasSupabaseAnonKey: !!SUPABASE_ANON_KEY,
-      proxyUrl: this.baseUrl ? this.baseUrl.replace(/\/functions\/v1$/, '/functions/v1/[FUNCTION]') : 'none'
+    // Use Netlify Edge Functions instead of Supabase
+    this.baseUrl = '/api/usda';
+    console.log('USDA API Service initialized with Netlify Edge Functions:', {
+      baseUrl: this.baseUrl
     });
   }
 
   isConfigured(): boolean {
-    return !!this.baseUrl && !!SUPABASE_ANON_KEY;
+    // Always return true since we're using Netlify Edge Functions
+    // The API key check happens server-side
+    return true;
   }
 
-  private getAuthHeaders(): Record<string, string> {
-    const headers: Record<string, string> = {
+  private getHeaders(): Record<string, string> {
+    return {
       'Content-Type': 'application/json',
     };
-
-    if (SUPABASE_ANON_KEY) {
-      headers['Authorization'] = `Bearer ${SUPABASE_ANON_KEY}`;
-    }
-
-    return headers;
   }
 
   async searchFoods(
@@ -40,14 +31,6 @@ class USDAApiService {
     searchMode: SearchMode = 'generic',
     pageNumber: number = 1
   ): Promise<{ foods: USDAFoodSearchResult[]; totalHits: number }> {
-    if (!this.baseUrl) {
-      throw new Error('Supabase URL not configured');
-    }
-
-    if (!SUPABASE_ANON_KEY) {
-      throw new Error('Supabase anon key not configured');
-    }
-
     let dataType: string[];
     
     switch (searchMode) {
@@ -73,9 +56,9 @@ class USDAApiService {
       sortOrder: 'asc'
     };
 
-    const url = `${this.baseUrl}/usda-proxy/search`;
+    const url = `${this.baseUrl}/search`;
 
-    console.log('USDA API Search Request via Proxy:', {
+    console.log('USDA API Search Request via Netlify Edge Function:', {
       url,
       method: 'POST',
       body: requestBody,
@@ -86,7 +69,7 @@ class USDAApiService {
     try {
       const response = await fetch(url, {
         method: 'POST',
-        headers: this.getAuthHeaders(),
+        headers: this.getHeaders(),
         body: JSON.stringify(requestBody)
       });
 
@@ -98,13 +81,13 @@ class USDAApiService {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('USDA API Proxy Error Details:', {
+        console.error('USDA API Netlify Edge Function Error Details:', {
           status: response.status,
           statusText: response.statusText,
           body: errorText,
           url
         });
-        throw new Error(`USDA API proxy error: ${response.status} - ${response.statusText}`);
+        throw new Error(`USDA API Netlify Edge Function error: ${response.status} - ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -252,24 +235,16 @@ class USDAApiService {
   }
 
   async getFoodDetails(fdcId: number): Promise<USDAFoodDetails> {
-    if (!this.baseUrl) {
-      throw new Error('Supabase URL not configured');
-    }
+    const url = `${this.baseUrl}/food/${fdcId}`;
 
-    if (!SUPABASE_ANON_KEY) {
-      throw new Error('Supabase anon key not configured');
-    }
-
-    const url = `${this.baseUrl}/usda-proxy/food/${fdcId}`;
-
-    console.log('USDA API Details Request via Proxy:', {
+    console.log('USDA API Details Request via Netlify Edge Function:', {
       url,
       fdcId
     });
 
     try {
       const response = await fetch(url, {
-        headers: this.getAuthHeaders()
+        headers: this.getHeaders()
       });
 
       console.log('USDA API Details Response:', {
@@ -279,13 +254,13 @@ class USDAApiService {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('USDA API Details Proxy Error:', {
+        console.error('USDA API Details Netlify Edge Function Error:', {
           status: response.status,
           statusText: response.statusText,
           body: errorText,
           fdcId
         });
-        throw new Error(`USDA API proxy error: ${response.status} - ${response.statusText}`);
+        throw new Error(`USDA API Netlify Edge Function error: ${response.status} - ${response.statusText}`);
       }
 
       const data = await response.json();
